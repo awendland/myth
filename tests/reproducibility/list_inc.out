@@ -1,0 +1,4 @@
+(* Generated Mon Apr 11 18:53:33 2016 *)
+let list_inc : list -> list =
+  fun (l1:list) -> map l1 (fun (n1:nat) -> S (n1))
+;;

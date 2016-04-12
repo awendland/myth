@@ -1,0 +1,6 @@
+(* Generated Mon Apr 11 18:53:35 2016 *)
+let list_tl : list -> list =
+  fun (l1:list) -> match l1 with
+                     | Nil -> Nil
+                     | Cons (n1, l2) -> l2
+;;

@@ -1,0 +1,9 @@
+(* Generated Mon Apr 11 18:53:34 2016 *)
+let list_length : list -> nat =
+  let rec f1 (l1:list) : nat =
+    match l1 with
+      | Nil -> O
+      | Cons (n1, l2) -> S (f1 l2)
+  in
+    f1
+;;

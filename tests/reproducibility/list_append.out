@@ -1,0 +1,10 @@
+(* Generated Mon Apr 11 18:53:35 2016 *)
+let list_append : list -> list -> list =
+  let rec f1 (l1:list) : list -> list =
+    fun (l2:list) ->
+      match l1 with
+        | Nil -> l2
+        | Cons (n1, l3) -> Cons (n1, f1 l3 l2)
+  in
+    f1
+;;
