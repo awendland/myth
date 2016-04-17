@@ -177,9 +177,9 @@ and fpf_exp ppf ((lvl, e):int * exp) =
         fpf ppf "@[<2>in@\n%a@]" fpf_exp (this_lvl, e2)
     | ECtor (c, es)  ->
         if List.length es = 0 then
-          fpf ppf "@[<2>%a@]" ident ctor_of_int c
+          fpf ppf "@[<2>%a@]" ident (ctor_of_int c)
         else
-          fpf ppf "@[<2>%a (%a)@]" ident c fpf_exp_list es
+          fpf ppf "@[<2>%a (%a)@]" ident (ctor_of_int c) fpf_exp_list es
     | EMatch (e, bs) -> fpf ppf "@[<2>match %a with@\n%a@]" fpf_exp (0, e) fpf_branches (this_lvl+1, bs)
     | EPFun ios -> fpf ppf "@[<2>%a@]" fpf_ios (this_lvl, ios)
     | EFix (f, x, t, e) -> fpf ppf "@[<2>fix %a %a : %a =@ %a@]"
