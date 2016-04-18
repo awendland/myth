@@ -61,14 +61,12 @@ let rec is_list_literal (e:exp) : bool =
   | ECtor ("Cons", [_; e]) -> is_list_literal e
   | _                      -> false
 
-let fpf_nat_literal ppf e =
-  let rec count n e =
-    match e with
-    | ECtor ("O", [])  -> fpf ppf "%d" n
-    | ECtor ("S", [e]) -> count (n+1) e
-    | _ -> raise @@ Internal_error "(fpf_nat_literal) non-nat literal encountered"
-  in
-  count 0 e
+let rec fpf_nat_literal ppf e =
+  match e with
+  | ECtor ("O", [])  -> fpf ppf "O"
+  | ECtor ("S", [e]) -> fpf ppf "S (%a)" fpf_nat_literal e
+  | _ -> raise @@ Internal_error "(fpf_nat_literal) non-nat literal encountered"
+
 
 let rec fpf_id_list ppf (xs:id list) =
   match xs with
@@ -177,9 +175,9 @@ and fpf_exp ppf ((lvl, e):int * exp) =
         fpf ppf "@[<2>in@\n%a@]" fpf_exp (this_lvl, e2)
     | ECtor (c, es)  ->
         if List.length es = 0 then
-          fpf ppf "@[<2>%a@]" ident (ctor_of_int c)
+          fpf ppf "@[<2>%a@]" ident c
         else
-          fpf ppf "@[<2>%a (%a)@]" ident (ctor_of_int c) fpf_exp_list es
+          fpf ppf "@[<2>%a (%a)@]" ident c fpf_exp_list es
     | EMatch (e, bs) -> fpf ppf "@[<2>match %a with@\n%a@]" fpf_exp (0, e) fpf_branches (this_lvl+1, bs)
     | EPFun ios -> fpf ppf "@[<2>%a@]" fpf_ios (this_lvl, ios)
     | EFix (f, x, t, e) -> fpf ppf "@[<2>fix %a %a : %a =@ %a@]"
