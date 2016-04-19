@@ -1,0 +1,414 @@
+
+\documentclass[preprint, 11pt]{sigplanconf}
+
+\usepackage{amsmath}
+\usepackage{graphicx}
+\usepackage{float}
+\newcommand{\cL}{{\cal L}}
+\newcommand{\concat}{\ensuremath{+\!\!\!\!+\,}}
+\begin{document}
+
+\special{papersize=8.5in,11in}
+\setlength{\pdfpageheight}{\paperheight}
+\setlength{\pdfpagewidth}{\paperwidth}
+
+
+\titlebanner{McGill University COMP527 Winter2016 final project}
+\preprintfooter{Review and Test Cases for \textsc{Myth} by \citet{osera2015type}}
+
+\title{Example-directed Program Synthesis}
+\subtitle{Review and Test Cases}
+
+\authorinfo{Qi Nan Jin - 260531346}
+           {McGill University}
+           {qi.jin@mail.mcgill.ca}
+
+\maketitle
+
+\begin{abstract}
+This project closely reviews the concept of example-directed program synthesis with a main focus on the new synthesis language $\lambda_{syn}$ developed by \citet{osera2015type}, as well as the associated artifact: \textsc{Myth}. It provides a theoretical review of the underlying concepts, a reproducibility test to the results and a sensitivity test of the synthesis language with respect to example specifications. It also proposes some improvements and additions to the existing \textsc{Myth} artifact.\end{abstract}\\
+
+\terms
+$\lambda_{syn}$, \textsc{Myth}\\
+
+\keywords
+Program synthesis, Example-directed\\
+
+\section{Introduction}\label{sec-intr}
+
+For decades, program synthesis has been an active and interesting area of research for its promising potential applications \cite{Basin2004}. Since the early works of \citet{green1969application}, as well as \citet{manna1971toward}, a close link has been established between program synthesis and formal deduction systems with heuristics. The underlying relationship between logical frameworks and programs makes program synthesis a particularly interesting topic in both computer science and logics. \\
+
+In the recent years, more attentions have been attributed to the development of example-directed program synthesis. The ideal of example specifications can be related back to early works include \citet{freeman1991refinement}, which introduces the concept of refinement types. A recent paper by \citet{osera2015type} introduces a new method for type-and-example-directed program synthesis that claims to match or outperform existing “gold-standard” methods. \\
+
+In this project, a theoretical review of the concept of program synthesis will be provided, leading to a detailed examination of the new method by \citet{osera2015type}, as well as the emerging artifact, \textsc{Myth}. \\
+
+\section{Theory}\label{sec-theo}
+
+\subsection{Program Synthesis in General}\label{sec-prog}
+
+Works in constructive mathematics from as early as the 1930s \cite{kolmogorov1932theory}\cite{kreitz1998program} laid foundation in the field of program synthesis, by suggesting the parallel between programs as proofs. With the appearance of automatic theorem provers, program synthesizers emerged shortly thereafter\cite{kreitz1998program}. \\
+
+In its early stage, program synthesis focuses mainly on proof search, based on early works of \citet{green1969application}, as well as \citet{manna1971toward}. The method builds upon the idea that corresponding proof of the specification statement is constructive, for which the steps can be directly associated to methods to construct the program. This method mainly relies on the construction of an extended $\lambda$-calculus, following the Curry-Howard Isomorphism between proofs and terms \cite{curry1972combinatory} \cite{tait1967intensional}.\\
+
+A second branch of program synthesis quickly emerged in the late 1970s based on program transformation \cite{burstall1977transformation}, which usually proceeds by translating the output-condition step-by-step, into logically equivalent or stronger formula \cite{kreitz1998program}. Different branches of possible optimizations methods for transformational synthesis include Partial evaluation \cite{bjorner1988partial}, Finite differencing \cite{paige1982finite}, etc.\\
+
+\subsection{Example-directed program synthesis}\label{sec-exam}
+
+Example-directed program synthesis aims to provide concrete input-output examples as extra information in the specification in a proof-search based program synthesis. Based on recent work from \citet{frankle2016example}, examples can be interpreted as refinement types, first studies by Freeman and Pfenning \cite{freeman1991refinement}\cite{pfenning1993refinement}. A parallel can be drown between the three fundamental types in the refinement-type system and the input-output specifications. More specifically, the input/output pairs can be identified as singleton types. The functions mapping the input type to the output type can be identified as function/arrow types. Finally, multiple input-output examples used in conjunction can, obviously, identified as the conjunction type in the refinement-type system.\\
+
+The work of \citet{osera2015type}, builds on this idea and formalizes a synthesis languague: $\lambda_{syn}$, as shown in Figure \ref{fig-lambdasyn}. \\
+
+\begin{figure}[!ht]
+  \begin{center}
+    \begin{tabular}{lrl}
+            $\tau$    & ::=    & $\tau$ $\mid$ $\tau_{1} \rightarrow \tau_{2}$ \\
+            $e$       & ::=    & $x$ $\mid$ $C(e_{1},..,e_{k})$ $\mid$ $e_{1}$ $e_{2}$ \\
+                      & $\mid$ & $\mathrm{fix} \, f(x:\tau_{1}):\tau_{2}=e$ $\mid$ $pf$ \\
+                      & $\mid$ & $\mathrm{match}\, e \, \mathrm{ with } \, p_{1} \rightarrow e_{1}$ $\mid$ .. $\mid$ $p_{m} \rightarrow e_{m}$ \\
+            $p$       & ::=    & $C(x_{1},..,x_{k})$ \\
+            $u,v$     & ::=    & $C(v_{1},..,v_{k})$ $\mid$ $\mathrm{fix} \, f(x:\tau_{1}):\tau_{2}=e$ $\mid$ $pf$ \\
+            $ex$      & ::=    & $C(ex_{1},..,ex_{k})$ $\mid$ $pf$ \\
+            $pf$      & ::=    & $v_{1} \Rightarrow ex_{1}$ $\mid$ .. $\mid$ $v_{m} \Rightarrow ex_{m}$ \\
+            $E$       & ::=    & $x$ $\mid$ $E\,I$ \\
+            $I$       & ::=    & $E$ $\mid$ $C(I_{1},..,I_{k})$ $\mid$ $\mathrm{fix} \, f(x:\tau_{1}):\tau_{2}=I$ \\
+                      & $\mid$ & $\mathrm{match}\, E \, \mathrm{ with } \, p_{1} \rightarrow I_{1}$ $\mid$ .. $\mid$ $p_{m} \rightarrow I_{m}$ \\
+            $\Gamma$  & ::= & $\cdot$ $\mid$ $x$ : $\tau,\Gamma$ \\
+            $\Sigma$  & ::= & $\cdot$ $\mid$ $C$ : $\tau_{1} * .. * \tau_{n} \rightarrow T,\Sigma$ \\
+
+            $\sigma$  & ::= & $\cdot$ $\mid$ $[v/x]\sigma$ \\
+            $X$       & ::= & $\cdot$ $\mid$ $\sigma \mapsto ex \concat X$
+    \end{tabular} \\
+  \end{center}
+  \caption{$\lambda_{syn}$ syntax as formalized by \citet{osera2015type}.}
+  \label{fig-lambdasyn}
+\end{figure}
+
+This language also includes full sets of typechecking rules, synthesis rules, auxiliary synthesis functions as well as evaluation and compatibility rules to form a complete framework. The details are exhaustively presented in the original paper \cite{osera2015type}.\\
+
+The formalized synthesis language $\lambda_{syn}$ operates in two modes: generating type in elimiation form ($E$-guessing) and checking type in introduction form ($I$-refinement). This is achieved with the help of an new data structure named \em{refinement tree}. A \em{refinement tree} includes both goal nodes at which $E$-guessing happen, and refinement nodes at which the type-checking of $I$-refinement is performed. An iterative-deepening search is then applied to this structure to find a matching function that satisfies the input-output specifications \cite{osera2015type}.\\
+
+\section{Implementation}\label{sec-impl}
+
+The authors implemented a prototype synthesizer \textsc{Myth} under the \textsc{Ocaml} environment. The artifact uses a relatively naive but balanced search strategy to alternate between $E$-guessing and increasing the number of nodes in the refinement tree. The startegy is described in Figure \ref{fig-stra}.\\
+
+\begin{figure}[!ht]
+  \begin{center}
+    \begin{verbatim}
+        SynthSaturate 0.25
+      ; SynthGrowMatches
+      ; SynthSaturate 0.25
+      ; SynthGrowMatches
+      ; SynthSaturate 0.25
+      ; SynthGrowScrutinees 5
+      ; SynthSaturate 0.25
+      ; SynthGrowMatches
+      ; SynthSaturate 0.25
+      ; SynthGrowScrutinees 5
+      ; SynthSaturate 0.25
+    \end{verbatim}
+  \end{center}
+  \caption{Synthesis strategy of \textsc{Myth} by \citet{osera2015type}.}
+  \label{fig-stra}
+\end{figure}
+
+\noindent where \texttt{SynthSaturate} performs a round of $E$-guessing with the given time constraint, \texttt{SynthGrowMatches} increases the depth of  the search tree by one, and finally \texttt{SynthGrowScrutinees} increases the search scrutinee by a specified size. Here the scrutinee growth size is fixed at five (which corresponds to the size of a binary function application \texttt{f e1 e2}) \cite{osera2015type}. \\
+
+Using a benchmark testing suite, \citet{osera2015type} state that \textsc{Myth} matches or outperforms previous methods by synthesizing more programs as well as achieving it in shorter time on average.\\
+
+\section{Testing}\label{sec-test}
+
+In the context of this review project, a straightforward reproducibility test is first performed, using the method and benchmark test set from the paper, to confirm the results published by the authors. A smaller test set is then applied with minor modifications in the input-output example specifications, in order to assess the artifact's sensitivity to example specifications. Finally, a few new test cases are constructed to test the limits of \textsc{Myth}.\\
+
+\section{Results}\label{sec-resu}
+
+\subsection{Reproducibility test}\label{sec-repr}
+
+In order to confirm the results published from the paper, a straightforward reproducibility test is first performed using the benchmark test suite and the standard method discribed in the artifact \citet{osera2015type}. The simulation is run on a Linux laptop machine with an Intel i5-4210H @ 2.90GHz and 8Gb of ram. The result of this reproducibility test is presented in Figure \ref{fig-repr}. Synthesis times using minimal context in the reproducibility test are generally longer than, but comparable to the ones published in the paper. The longer synthesis time can be explained by the mismatch in the specs of the equipments.\\
+
+One interesting finding is that for several tests, such as \texttt{list\_append} and \texttt{list\_nth}, the numbers of examples used is significantly lower than the ones reported in the paper. This is likely caused by the fact that the example set of these tests are further optimized since the paper was submitted.\\
+
+\begin{figure}[!ht]
+  \begin{center}
+  \footnotesize
+  \begin{tabular}{ccccc}
+  \hline
+  \textbf{Test} & \textbf{ \#Ex } & \textbf{ \#N } & \multicolumn{2}{c}{\textbf{Time-Min (s)}} \\
+   &  &  & test & paper \\
+  \hline
+\multicolumn{5}{c}{\textbf{Booleans}} \\
+bool\_band & 4 & 6 & 0.0032 & 0.002 \\
+bool\_bor & 4 & 6 & 0.0034 & 0.001 \\
+bool\_impl & 4 & 6 & 0.0036 & 0.002 \\
+bool\_neg & 2 & 5 & 0.001 & 0 \\
+bool\_xor & 4 & 9 & 0.0036 & 0.002 \\
+  \hline
+\multicolumn{5}{c}{\textbf{Lists}} \\
+list\_append & 6 & 12 & 0.007 & 0.003 \\
+list\_compress & 13 & 28 & 0.116 & 0.073 \\
+list\_concat & 6 & 11 & 0.011 & 0.006 \\
+list\_drop & 11 & 13 & 0.023 & 0.013 \\
+list\_even\_parity & 7 & 13 & 0.0086 & 0.004 \\
+list\_filter & 8 & 15 & 0.0282 & 0.067 \\
+list\_fold & 9 & 13 & 0.1986 & 0.139 \\
+list\_hd & 3 & 5 & 0.002 & 0.001 \\
+list\_inc & 4 & 8 & 0.0016 & 0 \\
+list\_last & 6 & 11 & 0.005 & 0 \\
+list\_length & 3 & 8 & 0.002 & 0.001 \\
+list\_map & 8 & 12 & 0.0184 & 0.008 \\
+list\_nth & 13 & 16 & 0.025 & 0.013 \\
+list\_pairwise\_swap & 7 & 19 & 0.0146 & 0.007 \\
+list\_rev\_append & 5 & 13 & 0.017 & 0.011 \\
+list\_rev\_fold & 5 & 12 & 0.013 & 0.007 \\
+list\_rev\_snoc & 5 & 11 & 0.01 & 0.006 \\
+list\_rev\_tailcall & 8 & 12 & 0.0098 & 0.004 \\
+list\_snoc & 8 & 14 & 0.007 & 0.003 \\
+list\_sort\_sorted\_insert & 7 & 11 & 0.013 & 0.008 \\
+list\_sorted\_insert & 12 & 24 & 0.1908 & 0.122 \\
+list\_stutter & 3 & 11 & 0.0018 & 0.001 \\
+list\_sum & 3 & 8 & 0.004 & 0.002 \\
+list\_take & 12 & 15 & 0.1406 & 0.112 \\
+list\_tl & 3 & 5 & 0.0016 & 0.001 \\
+  \hline
+\multicolumn{5}{c}{\textbf{Natural Numbers}} \\
+nat\_add & 9 & 11 & 0.004 & 0.002 \\
+nat\_iseven & 4 & 10 & 0.0016 & 0.001 \\
+nat\_max & 9 & 14 & 0.0196 & 0.011 \\
+nat\_pred & 3 & 5 & 0.001 & 0.001 \\
+  \hline
+\multicolumn{5}{c}{\textbf{Trees}} \\
+tree\_binsert & 20 & 31 & 0.4856 & 0.374 \\
+tree\_collect\_leaves & 6 & 15 & 0.0266 & 0.016 \\
+tree\_count\_leaves & 7 & 14 & 0.0162 & 0.008 \\
+tree\_count\_nodes & 6 & 14 & 0.016 & 0.009 \\
+tree\_inorder & 5 & 15 & 0.026 & 0.012 \\
+tree\_map & 7 & 15 & 0.029 & 0.014 \\
+tree\_nodes\_at\_level & 11 & 22 & 1.0388 & 1.093 \\
+tree\_postorder & 9 & 32 & 1.4258 & 1.136 \\
+tree\_preorder & 5 & 15 & 0.0188 & 0.009 \\
+  \hline
+  \end{tabular}
+  \end{center}
+  \caption{\textsc{Myth} benchmark suite reproducibility test results using minimal context, where \#Ex is the number of examples used, \#N is the size of the result}
+  \label{fig-repr}
+\end{figure}
+
+\begin{figure}[!ht]
+  \noindent \small Test case for \texttt{list\_nth}:
+  \scriptsize
+  \begin{verbatim}
+type nat =
+  | O | S of nat
+
+type list =
+  | Nil | Cons of nat * list
+
+let list_nth : list -> nat -> nat |>
+  { [] => ( 0 => 0
+          | 1 => 0 )
+  | [2] => ( 0 => 2
+           | 1 => 0 )
+  | [1; 2] => ( 0 => 1
+              | 1 => 2 )
+  | [1] => ( 0 => 1
+           | 1 => 0 )
+  | [2; 1] => ( 0 => 2
+              | 1 => 1 )
+  | [3; 2; 1] => ( 0 => 3
+                 | 1 => 2
+                 | 2 => 1 )
+  } = ?
+  \end{verbatim}
+
+  \noindent \small Output with original input:
+  \scriptsize
+  \begin{verbatim}
+let list_nth : list -> nat -> nat =
+  let rec f1 (l1:list) : nat -> nat =
+    fun (n1:nat) ->
+      match n1 with
+        | O -> (match l1 with
+                  | Nil -> 0
+                  | Cons (n2, l2) -> n2)
+        | S (n2) -> (match l1 with
+                       | Nil -> 0
+                       | Cons (n3, l2) -> f1 l2 n2)
+  in
+    f1
+;;
+  \end{verbatim}
+
+  \noindent \small Output with modified input, by changing the order of the last example to \texttt{[1; 2; 3]}:
+  \scriptsize
+  \begin{verbatim}
+let list_nth : list -> nat -> nat =
+  let rec f1 (l1:list) : nat -> nat =
+    fun (n1:nat) ->
+      match l1 with
+        | Nil -> O
+        | Cons (n2, l2) -> ( match f1 l2 O with
+                           | O -> ( match n1 with
+                                  | O -> n2
+                                  | S (n3) -> O)
+                           | S (n3) -> ( match n1 with
+                                       | O -> n2
+                                       | S (n4) -> S (n3)))
+  in
+    f1
+;;
+  \end{verbatim}
+  \caption{Difference in synthesized program given slightly modified example.}
+  \label{fig-sensitivity}
+\end{figure}
+
+\subsection{Sensitivity test}\label{sec-sens}
+
+
+Several test cases are slightly modified by changing the order in which the examples are presented, in order to test \textsc{Myth}'s sensitivity to example specifications. While programs dealing with simply data types such as \texttt{bool} or \texttt{nat} are synthesized identically to the original cases, \textsc{Myth} fails to synthesize the same program for more complex data types such as \texttt{list}. An example is shown in Figure \ref{fig-sensitivity}. This finding will be further discuss in Section \ref{sec-disc-sens}.\\
+
+\subsection{New test cases}\label{sec-newc}
+
+Five new test cases, as listed below, are successfully synthesized:
+
+\begin{itemize}
+  \item \texttt{bool\_iff : bool -> bool -> bool}, which checks the \emph{if and only if} condition of two \texttt{bool}.
+  \item \texttt{nat\_eq : nat -> nat -> bool}, which checks if two \texttt{nat} numbers are equal.
+  \item \texttt{list\_has : nat -> list -> bool}, which checks if a \texttt{list} contains a specific \texttt{nat} number.
+  \item \texttt{list\_index : nat -> list -> nat}, which returns the index of the first instance of a specific \texttt{nat} number in a \texttt{list}, returns the index of the last element if specified element not found in list.
+  \item \texttt{list\_eq : list -> list -> bool}, which checks whether two lists contain the exact same elements (in same order).
+\end{itemize}
+
+\texttt{bool\_iff} and \texttt{nat\_eq} are quite trivial, whereas the three test cases of \texttt{list} type require more careful tuning of the example specification and definition of helper functions. The synthesis data is listed in Figure \ref{fig-newc}. The detailed findings will again be further discussed in Section \ref{sec-disc-cont}.\\
+
+\begin{figure}[!ht]
+  \begin{center}
+  \begin{tabular}{cccc}
+  \hline
+  \textbf{Test} & \textbf{ \#Ex } & \textbf{ \#N } & \textbf{Time (s)} \\
+  \hline
+  nat\_eq & 5 & 16 & 0.0104 \\
+  list\_eq & 16 & 23 & 13.6328 \\
+  list\_index & 10 & 19 & 1.751 \\
+  list\_has & 7 & 19 & 0.638 \\
+  bool\_band & 4 & 9 & 0.0038 \\
+  \hline
+  \end{tabular}
+  \end{center}
+  \caption{\textsc{Myth} test results using new test cases, where \#Ex is the number of examples used, \#N is the size of the result}
+  \label{fig-newc}
+\end{figure}
+
+\section{Discussion}\label{sec-disc}
+
+\subsection{Sensitivity to example specifications}\label{sec-disc-sens}
+The most important finding from the tests is that, although not an issue with more premitive data types (\texttt{bool}, \texttt{nat}), \textsc{Myth} is extremely sensitive to example specifications for programs with more complex types. Sometimes, a very slight change in the example specification could result in vastely different results or even failure in synthsis. In some extreme cases, the synthesis changes significantly even by simply adding an extra redundant example. \citet{osera2015type} did make a note of this issue in their discussion, stating that the examples should be specified in such way that they imitate each recursive call of the target function, which is usually not case in real-life input-output examples available to be used for program synthesis. This is likely going to be the most important challenge to overcome in order for this method to have real-life applications.\\
+
+\subsection{Context size and helper functions}\label{sec-disc-cont}
+Some of the new test cases require a larger context, \emph{i.e.}, predefined helper functions. This allows the program to be synthesized correctly but significantly increased the synthsis time. This finding is in agreement of some cases presented by \citet{osera2015type} in the original publication. The authors attributed this issue to the significantly larger set of possible matches for $E$-guessing given by the helper function. They also proposed possible ways of mitigate this problem, such as optimizing search heuristic.\\
+
+It was pointed out by \citet{osera2015type} that the synthesis tend to be driven into a counter-intuitive pattern: \emph{inside-out recursion}, where the synthesized function tends to match for output types from recursive calls itself, rather than input types. Although there are successful cases where a synthesized function with an \emph{inside-out recursion} does perform the correct task, it is observed during the testing that most of these functions are too specific to satisfying the given set of examples and generally correct. It is also observed, however, that extra context and helper functions tend to decrease the chance of getting an \emph{inside-out recursion}, at the cost of synthsis time.\\
+
+\subsection{Other findings}\label{sec-disc-othe}
+As already pointed out in Section \ref{sec-disc-cont}, one possible immediate improvement to this synthesis method is to further optimize the search strategy and/or heuristic. The current setting of \textsc{Myth} has a rather naive, but balanced alternation between term generation and refinement, with a generation timeout of 2.5ms. Based on the description by \citet{osera2015type} as well as the traces in the source code, it appears that the authors have tested several different possibilities and found the current setting to be the most stable one. During the testing, a few other search strategies, such as a longer timeout for term generation and increasing the size of scrutinee growth, have been attempted. They all prove to be less optimal than the existing stable strategy. Due to time and resource constraint, the different possible search strategies cannot be exhaustively tested, but this should definitely be the main concentration of future works on this topic.\\
+
+Another minor finding of the \textsc{Myth} prototype is an issue in output formatting. Although \textsc{Myth} is not compatible with premitive data types in OCaml, such as \texttt{int} or \texttt{string}, the authors added an extra layer of parser to translate normal repersentation of a natural number or a list (\emph{e.g.}, \texttt{0, 1, [0,1]} etc) into algebraic types \texttt{nat} and \texttt{list} recognizable by \textsc{Myth}. This is certainly done for convenience in specifying input-output examples. During the output step of the synthesized program, the authors reformat the \texttt{nat} and \texttt{list} types back into a normal reprsentation. Althought this is more advantageous from an aesthetics point of view, it prevents the synthesized code from being run directly in the context of OCaml. This may potentially cause issues for future wrapper methods for test/application purposes. An adapted implementaion of \textsc{Myth} is created to resolve this issue by keeping the data types as they are during the output formatting step. \\
+
+\section{Conclusion}\label{sec-conl}
+This project provides an overview of the underlying theories of program synthesis with a concentrated attention on the new synthesis language $\lambda_{syn}$ - a proof-theory-based, example-and-type-directed synthesis algorithm - developped by \citet{osera2015type}. Reproducibility as well as sensitivity tests are performed on the prototype of $\lambda_{syn}$'s artifact: \textsc{Myth}, revealing strengths and weakenesses of this method. Five additional test cases are also successfully synthesized using the \textsc{Myth} artifact. Interesting results are discovered during the testing and discussed in this report. Optimization of the search strategy has been identified during this project to be the key component that needs to be improved in future works, if time and resources permit. An optimal search strategy will allow this method to accomodate for more formats of example-specification while keeping the synthesis search space reasonably small. Once achieved, this synthesis method has great potential of becoming a usable tool with broader applications.\\
+
+
+\appendix
+\section{Electronic Appendix}
+All work done for this project, including an copy of the \textsc{Myth} artifact with customized implementation (output format fix and new test cases), as well as a copy of this report and its source code, can be found in a repository dedicated to this project at https://github.com/Hachiko99/Project-527.
+
+\begin{thebibliography}{14}
+\softraggedright
+
+\bibitem[Basin et~al.(2004)Basin, Deville, Flener, Hamfelt, and
+  Fischer~Nilsson]{Basin2004}
+D.~Basin, Y.~Deville, P.~Flener, A.~Hamfelt, and J.~Fischer~Nilsson.
+\newblock \emph{Program Development in Computational Logic: A Decade of
+  Research Advances in Logic-Based Program Development}, chapter Synthesis of
+  Programs in Computational Logic, pages 30--65.
+\newblock Springer Berlin Heidelberg, Berlin, Heidelberg, 2004.
+\newblock ISBN 978-3-540-25951-0.
+
+\bibitem[Bjorner et~al.(1988)Bjorner, Jones, and Ershov]{bjorner1988partial}
+D.~Bjorner, N.~D. Jones, and A.~Ershov.
+\newblock \emph{Partial Evaluation and Mixed Computation: Proceedings of the
+  IFIP TC2 Workshop, Gammel Avernaes, Denmark, 18-24 Oct., 1987}.
+\newblock Elsevier Science Inc., 1988.
+
+\bibitem[Burstall and Darlington(1977)]{burstall1977transformation}
+R.~M. Burstall and J.~Darlington.
+\newblock A transformation system for developing recursive programs.
+\newblock \emph{Journal of the ACM (JACM)}, 24\penalty0 (1):\penalty0 44--67,
+  1977.
+
+\bibitem[Curry et~al.(1972)Curry, Feys, Craig, Hindley, and
+  Seldin]{curry1972combinatory}
+H.~B. Curry, R.~Feys, W.~Craig, J.~R. Hindley, and J.~P. Seldin.
+\newblock Combinatory logic.
+\newblock 1972.
+
+\bibitem[Frankle et~al.(2016)Frankle, Osera, Walker, and
+  Zdancewic]{frankle2016example}
+J.~Frankle, P.-M. Osera, D.~Walker, and S.~Zdancewic.
+\newblock Example-directed synthesis: a type-theoretic interpretation.
+\newblock In \emph{Proceedings of the 43rd Annual ACM SIGPLAN-SIGACT Symposium
+  on Principles of Programming Languages}, pages 802--815. ACM, 2016.
+
+\bibitem[Freeman and Pfenning(1991)]{freeman1991refinement}
+T.~Freeman and F.~Pfenning.
+\newblock \emph{Refinement types for ML}, volume~26.
+\newblock ACM, 1991.
+
+\bibitem[Green(1969)]{green1969application}
+C.~Green.
+\newblock Application of theorem proving to problem solving.
+\newblock Technical report, DTIC Document, 1969.
+
+\bibitem[Kolmogorov(1932)]{kolmogorov1932theory}
+A.~Kolmogorov.
+\newblock The theory of functions of a real variable.
+\newblock \emph{Science in the USSR during fifteen years: Mathematics}, 1932.
+
+\bibitem[Kreitz(1998)]{kreitz1998program}
+C.~Kreitz.
+\newblock Program synthesis.
+\newblock In \emph{Automated Deduction—A Basis for Applications}, pages
+  105--134. Springer, 1998.
+
+\bibitem[Manna and Waldinger(1971)]{manna1971toward}
+Z.~Manna and R.~J. Waldinger.
+\newblock Toward automatic program synthesis.
+\newblock \emph{Communications of the ACM}, 14:\penalty0 151--165, 1971.
+
+\bibitem[Osera and Zdancewic(2015)]{osera2015type}
+P.-M. Osera and S.~Zdancewic.
+\newblock Type-and-example-directed program synthesis.
+\newblock In \emph{Proceedings of the 36th ACM SIGPLAN Conference on
+  Programming Language Design and Implementation}, pages 619--630. ACM, 2015.
+
+\bibitem[Paige and Koenig(1982)]{paige1982finite}
+R.~Paige and S.~Koenig.
+\newblock Finite differencing of computable expressions.
+\newblock \emph{ACM Transactions on Programming Languages and Systems
+  (TOPLAS)}, 4\penalty0 (3):\penalty0 402--454, 1982.
+
+\bibitem[Pfenning(1993)]{pfenning1993refinement}
+F.~Pfenning.
+\newblock Refinement types for logical frameworks.
+\newblock In \emph{Informal Proceedings of the Workshop on Types for Proofs and
+  Programs}, pages 285--299, 1993.
+
+\bibitem[Tait(1967)]{tait1967intensional}
+W.~W. Tait.
+\newblock Intensional interpretations of functionals of finite type i.
+\newblock \emph{The journal of symbolic logic}, 32\penalty0 (02):\penalty0
+  198--212, 1967.
+
+\end{thebibliography}
+
+\bibliographystyle{abbrvnat}
+
+\end{document}

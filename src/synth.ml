@@ -25,6 +25,21 @@ let standard_synth_plan : synth_plan =
   ; SynthSaturate 5.0
   ]
 *)
+(*
+let standard_synth_plan : synth_plan =
+  [ SynthSaturate 0.25
+  ; SynthGrowMatches
+  ; SynthSaturate 0.25
+  ; SynthGrowMatches
+  ; SynthSaturate 0.25
+  ; SynthGrowScrutinees 5
+  ; SynthSaturate 0.25
+  ; SynthGrowMatches
+  ; SynthSaturate 0.25
+  ; SynthGrowScrutinees 5
+  ; SynthSaturate 0.25
+  ]
+*)
 
 let standard_synth_plan : synth_plan =
   [ SynthSaturate 0.25

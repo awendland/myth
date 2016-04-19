@@ -61,6 +61,11 @@ let rec is_list_literal (e:exp) : bool =
   | ECtor ("Cons", [_; e]) -> is_list_literal e
   | _                      -> false
 
+
+(***********************************************************)
+(* Edited - QNJ *)
+(* output formatting from the original Myth implementation *)
+(*
 let fpf_nat_literal ppf e =
   let rec count n e =
     match e with
@@ -69,6 +74,14 @@ let fpf_nat_literal ppf e =
     | _ -> raise @@ Internal_error "(fpf_nat_literal) non-nat literal encountered"
   in
   count 0 e
+*)
+(* output formatting that allow terms to be printed in their original algebraic form *)
+let rec fpf_nat_literal ppf e =
+  match e with
+  | ECtor ("O", [])  -> fpf ppf "O"
+  | ECtor ("S", [e]) -> fpf ppf "S (%a)" fpf_nat_literal e
+  | _ -> raise @@ Internal_error "(fpf_nat_literal) non-nat literal encountered"
+(***********************************************************)
 
 let rec fpf_id_list ppf (xs:id list) =
   match xs with
@@ -187,6 +200,10 @@ and fpf_exp ppf ((lvl, e):int * exp) =
     end;
     (if this_lvl < lvl then fpf ppf ")")
 
+(***********************************************************)
+(* Edited - QNJ *)
+(* output formatting from the original Myth implementation *)
+(*
 and fpf_list_literal ppf e =
   let rec fpf_elems ppf e =
     match e with
@@ -201,6 +218,18 @@ and fpf_list_literal ppf e =
   fpf ppf "[";
   fpf_elems ppf e;
   fpf ppf "]"
+*)
+
+(* althernative output formatting to print list types in its original algebraic form *)
+and fpf_list_literal ppf e =
+  let rec fpf_list ppf e =
+      match e with
+        | ECtor ("Nil", []) -> fpf ppf "Nil"
+        | ECtor ("Cons", [e1; e2]) -> fpf ppf "Cons (%a, %a)" fpf_exp(0, e1) fpf_list_literal e2
+        | _ -> raise @@ Internal_error "(fpf_list_literal) non-list literal encountered"
+      in
+    fpf_list ppf e
+(***********************************************************)
 
 and fpf_value_list ppf (vs:value list) =
   match vs with

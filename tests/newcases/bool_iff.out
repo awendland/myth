@@ -1,0 +1,10 @@
+(* Generated Tue Apr 19 12:38:28 2016 *)
+let bool_band : bool -> bool -> bool =
+  fun (b1:bool) ->
+    fun (b2:bool) ->
+      match b1 with
+        | True -> b2
+        | False -> (match b2 with
+                      | True -> False
+                      | False -> True)
+;;
