@@ -1,6 +1,0 @@
-(* Generated Mon Apr 11 18:44:34 2016 *)
-An error was raised by this test: 2
-Fatal error: exception Parser.Error
-Raised at file "src/parser.ml", line 2754, characters 14-18
-Called from file "src/synml.ml", line 138, characters 29-41
-Called from file "src/synml.ml", line 143, characters 38-45
