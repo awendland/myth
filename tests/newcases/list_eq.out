@@ -1,0 +1,16 @@
+(* Generated Tue Apr 19 12:38:25 2016 *)
+let list_eq : list -> list -> bool =
+  let rec f1 (l1:list) : list -> bool =
+    fun (l2:list) ->
+      match l2 with
+        | Nil -> (match l1 with
+                    | Nil -> True
+                    | Cons (n1, l3) -> False)
+        | Cons (n1, l3) -> (match l1 with
+                              | Nil -> False
+                              | Cons (n2, l4) -> (match f1 l3 l4 with
+                                                    | True -> nat_equal n2 n1
+                                                    | False -> False))
+  in
+    f1
+;;

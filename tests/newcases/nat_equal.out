@@ -1,0 +1,14 @@
+(* Generated Tue Apr 19 12:38:12 2016 *)
+let nat_eq : nat -> nat -> bool =
+  let rec f1 (n1:nat) : nat -> bool =
+    fun (n2:nat) ->
+      match n1 with
+        | O -> (match n2 with
+                  | O -> True
+                  | S (n3) -> False)
+        | S (n3) -> (match n2 with
+                       | O -> False
+                       | S (n4) -> f1 n3 n4)
+  in
+    f1
+;;

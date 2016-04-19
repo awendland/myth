@@ -1,0 +1,16 @@
+(* Generated Tue Apr 19 12:38:28 2016 *)
+let list_has : nat -> list -> bool =
+  let rec f1 (n1:nat) : list -> bool =
+    fun (l1:list) ->
+      match n1 with
+        | O -> (match l1 with
+                  | Nil -> False
+                  | Cons (n2, l2) -> (match n2 with
+                                        | O -> True
+                                        | S (n3) -> False))
+        | S (n2) -> (match f1 n2 l1 with
+                       | True -> True
+                       | False -> False)
+  in
+    f1
+;;
